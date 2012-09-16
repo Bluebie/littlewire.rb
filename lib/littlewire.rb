@@ -30,6 +30,10 @@ class LittleWire
     d2: [:digital, :pin2],
     d3: [:digital, :pin3],
     d4: [:digital, :pin4],
+    pin1: [:digital, :pin1],
+    pin2: [:digital, :pin2],
+    pin3: [:digital, :pin3],
+    pin4: [:digital, :pin4],
     a1: [:analog, :a1],
     a2: [:analog, :a2],
     adc_1: [:analog, :adc_1],
@@ -150,7 +154,7 @@ class LittleWire
   # Be careful not to create short circuits on pins that are in :output mode, as these can harm your littlewire.
   # Pullup mode is useful for creating buttons.
   def digital_write pin, value
-    control_transfer(function: value ? :pin_set_high : :pin_set_low, wValue: map_resolve(DigitalPinMap, pin))
+    control_transfer(function: map_digital_value(value) ? :pin_set_high : :pin_set_low, wValue: map_resolve(DigitalPinMap, pin))
   end
   
   # Read the current value of an analog input
@@ -302,6 +306,16 @@ class LittleWire
   def method_missing name, *args, &proc
     underscorized = name.to_s.gsub(/([a-z])([A-Z])/) { "#{$1}_#{$2}" }.downcase  # make underscored equivilent
     return send(underscorized, *args, &proc) if respond_to? underscorized # translate casing style if we can find an equivilent
+    
+    read_only = name.to_s.gsub('=', '').to_sym
+    if GenericPinMap.has_key? read_only
+      if name.to_s.end_with? '='
+        return (self[read_only] = args.first)
+      else
+        return self[read_only]
+      end
+    end
+    
     super # default behaviour
   end
   
@@ -396,6 +410,7 @@ class LittleWire
     # i2c send multiple messages - request = 0xE*     ### experimental ###
     # spi multiple message send - request = 0xF*
   ]
+  # transfer data between usb device and this program
   def control_transfer(opts = {}) #:nodoc:
     opts[:bRequest] = Functions.index(opts.delete(:function)) if opts[:function]
     io.control_transfer({
@@ -406,6 +421,7 @@ class LittleWire
     }.merge opts)
   end
   
+  # calculate usb request type
   def usb_request_type opts #:nodoc:
     c = LIBUSB::Call
     value = c::RequestTypes[:REQUEST_TYPE_VENDOR] | c::RequestRecipients[:RECIPIENT_DEVICE]
@@ -420,5 +436,12 @@ class LittleWire
     value = value.to_sym if value.is_a? String
     value = map[value] if map.has_key? value
     value
+  end
+  
+  # translate possible literal values in to a boolean true or false (meaning high or low)
+  def map_digital_value value #:nodoc:
+    # some exceptions
+    value = false if value == :low or value == 0 or value == nil or value == :off or value == :ground or value == :gnd
+    !! value # double invert value in to boolean form
   end
 end
