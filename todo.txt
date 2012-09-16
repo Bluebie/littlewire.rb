@@ -1,0 +1,13 @@
+Things not yet tested and maybe not yet implemented
+
+- servo macros
+- software pwm
+- i2c
+- spi
+
+Things tested successfully
+- setting pin mode
+- digital read and write
+- hardware pwm
+- analog write
+- analog read
