@@ -5,6 +5,9 @@ Things not yet tested and maybe not yet implemented
 - spi
 - onewire
 
+Things which need doing
+- Automatically reset device to a default state on LittleWire.initialize
+
 Things tested a little bit successfully
 - setting pin mode
 - digital read and write
