@@ -17,6 +17,6 @@ loop do
   # wire[:softpwm_1] = value
   wire.softpwm_a = value
   
-  fader += 0.05
+  fader += 0.025
   sleep 1.0 / FPS
 end

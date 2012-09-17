@@ -2,27 +2,42 @@
 # Provides an arduino or wiring style interface to the LittleWire device's IO features
 # and provides a nicer invented ruby-style interface also.
 require 'libusb'
+class LittleWire; end
+require_relative 'digital'
+require_relative 'analog'
+require_relative 'hardware-pwm'
+require_relative 'software-pwm'
+require_relative 'servo'
+require_relative 'spi'
+require_relative 'i2c'
+require_relative 'one-wire'
 
 # LittleWire class represents LittleWire's connected to your computer via USB
 # 
 # Most of the time you'll only have one LittleWire - in this case, use LittleWire.connect to get
 # ahold of your wire. If you have more than one, you can use LittleWire.all to fetch an array of them
 class LittleWire
+  include Digital
+  include Analog
+  include HardwarePWM
+  include SoftwarePWM
+  include Servo
+  
   # pin name to numeric internal code maps
   DigitalPinMap = { # maps common names to bit positions in PORTB
-    pin1: 1, d1: 1, miso:  1, pwm_b: 1,
+    pin1: 1, d1: 1, miso:  1, pwm_b: 1, pwm_2: 1,
     pin2: 2, d2: 2, sck:   2,
     pin3: 5, d3: 5, reset: 5,
-    pin4: 0, d4: 0, mosi:  0, pwm_a: 0 }
+    pin4: 0, d4: 0, mosi:  0, pwm_a: 0, pwm_1: 0 }
   AnalogPinMap = { # maps common names to switch index in littlewire firmware
     a1: 0, adc_1: 0, reset: 0, pin3: 0, d3: 0,
     a2: 1, adc_2: 1, sck:   1, pin2: 1, d2: 1,
     temperature: 2, temp: 2 }
   HardwarePWMPinMap = { # maps common pin names to @hardware_pwm array index
-    pwm_a: 0, d1: 0, pin4: 0, mosi: 0,
-    pwm_b: 1, d2: 1, pin1: 1, miso: 1 }
-  SoftwarePWMPinMap = {
-    softpwm_1: 0, softpwm_a: 0,
+    pwm_b: 1, pwm_1: 1, d1: 1, pin1: 1, miso: 1,
+    pwm_a: 0, pwm_2: 0, d4: 0, pin4: 0, mosi: 0 }
+  SoftwarePWMPinMap = { # TODO: figure out which pins these are
+    softpwm_1: 0, softpwm_a: 0, 
     softpwm_2: 1, softpwm_b: 1,
     softpwm_3: 2, softpwm_c: 2 }
   GenericPinMap = { # generic pinmap used by [] and []= methods to refer to anything
@@ -50,7 +65,6 @@ class LittleWire
     softpwm_c: [:software_pwm, :softpwm_c],
   }
   
-  VersionCodes = {0x11 => '1.1', 0x10 => '1.0'} # translate version codes in to friendly strings
   SupportedVersions = ['1.1', '1.0'] # in order of newness. # TODO: Add version 1.0?
   
   
@@ -107,198 +121,34 @@ class LittleWire
   # - programming requests
   #def power_up sck_period, reset; control_transfer(function: :power_up, wIndex: sck_period, wValue: reset ? 1 : 0); end
   #def power_down; control_transfer(function: :power_down); end
-  # TODO: spi, poll_bytes, flash_read, flash_write, eprom_read, eeprom_write
+  # TODO: maybe spi, poll_bytes, flash_read, flash_write, eprom_read, eeprom_write
   
-  PinModes = {input: :pin_set_input, output: :pin_set_output} #:nodoc:
-  # Set pins to either of :output or :input modes
-  # In :input mode:
-  #       pins digitally written to `false` are unconnected to any voltage
-  #       pins digitally written to `true` are connected via an internal 20kohm resistor to 5 volts (pullup mode)
-  # In :output mode:
-  #       pins digitally written to `false` are connected directly to ground
-  #       pins digitally written to `true` are connected directly to 5 volts
-  #
-  # Always be careful not to create short circuits when setting pins to output - your LittleWire could break under the stress.
-  #
-  # pin_mode can be called as pin_mode(:pin_name, :output) or as pin_mode(pin_name: :output, other_pin: :input)
-  def pin_mode *args
-    if args.length == 1 and args.first.is_a? Hash
-      hash = args.first
-      hash.each do |key, value|
-        self.pin_mode(key, value)
-      end
-    elsif args.length == 2 and (args[0].is_a?(Symbol) or args[0].is_a?(Integer))
-      pin, mode = args
-      modes = {input: :pin_set_input, output: :pin_set_output}
-      raise "Unknown mode #{mode}" unless modes[mode]
-      control_transfer(function: modes[mode], wValue: map_resolve(DigitalPinMap, pin))
-    else
-      raise "requires one or two arguments - ({hash of pins and modes}) or (pin, mode)"
-    end
+  
+  # returns version code number (treat it as a hex number)
+  def version_hex
+    @version_hex ||= control_transfer(function: :version, dataIn: 1).unpack('c').first
   end
-  
-  # reads the digital voltage level of a specified pin and returns true if it is roughly closer to 5v than 0v, or false otherwise
-  def digital_read pin
-    control_transfer(function: :pin_read, dataIn: 1, wValue: map_resolve(DigitalPinMap, pin)).bytes.first != 0
-  end
-  
-  # Set a pin. Behaviour is dependant on pin's mode:
-  #
-  # Pin is an :input:
-  #     `true` connects pin to 5v via an internal 20kohm resistor (pullup mode)
-  #     `false` disconnects pin from any voltage, allowing it to float freely
-  # Pin is an :output:
-  #     `true` connects pin directly to 5v
-  #     `false` connects pin directly to ground (0v)
-  #
-  # Be careful not to create short circuits on pins that are in :output mode, as these can harm your littlewire.
-  # Pullup mode is useful for creating buttons.
-  def digital_write pin, value
-    control_transfer(function: map_digital_value(value) ? :pin_set_high : :pin_set_low, wValue: map_resolve(DigitalPinMap, pin))
-  end
-  
-  # Read the current value of an analog input
-  # Valid inputs are 
-  AnalogReferences = [:vcc, :internal_reference_1_1, :internal_reference_2_56]
-  def analog_read input_name, voltage_reference = :vcc
-    voltage_reference = AnalogReferences.index(voltage_reference) if AnalogReferences.include? voltage_reference
-    scaling_setting = 0x07
-    
-    if @analog_reference != voltage_reference
-      @analog_reference = voltage_reference
-      # This reset step is to work around a bug in firmware 1.1 - hopefully it can be disabled in future releases
-      control_transfer(function: :analog_init, wValue: scaling_setting) # reset analog reference setting
-      # set new reference voltage
-      control_transfer(function: :analog_init, wValue: scaling_setting | voltage_reference << 8)
-    end
-    
-    control_transfer(function: :read_adc,
-                       wValue: map_resolve(AnalogPinMap, input_name),
-                       dataIn: 2).unpack('S<').first / 1024.0
-  end
-  
-  # Read the current temperature inside the LittleWire's chip, at roughly 1°C increments
-  # temperature must be calibrated by user through simple subtraction. The data is also pretty noisy and requires some
-  # averaging for most uses
-  def temperature
-    (analog_read(:temperature, :internal_reference_1_1) * 1024.0) / 1.12
-  end
-  
-  # Set hardware pwm as enabled or disabled - hardware pwm is automatically enabled when you start using it
-  attr_reader :hardware_pwm_enabled
-  def hardware_pwm_enabled= value
-    return if @hardware_pwm_enabled == value
-    @hardware_pwm_enabled = !!value
-    control_transfer(function: value ? :start_pwm : :stop_pwm)
-  end
-  
-  # Array of current hardware pwm values
-  def hardware_pwm; @hardware_pwm.dup; end
-  
-  # Set hardware pwm to an array of new values - array must be two items long
-  def hardware_pwm= values
-    self.hardware_pwm_enabled = true
-    @hardware_pwm[0] = values[0].to_i % 256
-    @hardware_pwm[1] = values[1].to_i % 256
-    control_transfer(function: :update_pwm_compare, wValue: @hardware_pwm[0].to_i, wIndex: @hardware_pwm[1].to_i)
-  end
-  
-  # Get the value of an individual hardware pwm channel
-  def hardware_pwm_read channel; hardware_pwm[map_resolve(HardwarePWMPinMap, channel)]; end
-  
-  # Set the value of an individual hardware pwm channel to a number between 0 and 255 inclusive
-  def hardware_pwm_write channel, value
-    updated = self.hardware_pwm
-    updated[map_resolve(HardwarePWMPinMap, channel)] = value
-    self.hardware_pwm = updated
-  end
-  
-  
-  PWMPrescaleSettings = [1, 8, 64, 256, 1024] # :nodoc:
-  # Set division of the Hardware PWM Prescaler - default 1024. This setting controls how quickly LittleWire's PWM channels oscillate
-  # between their 'high' and 'low' state. Lower prescaler values are often nicer for lighting, while higher values can be better for
-  # motor speed control and 1024 is required for servo position control
-  #     1024: roughly 63hz
-  #     256: roughly 252hz
-  #     64: roughly 1khz
-  #     8: roughly 8khz
-  #     1: roughly 64khz
-  #
-  # No other values are accepted
-  def hardware_pwm_prescale= division
-    raise "Unsupported Hardware PWM Prescale value, must be #{PWMPrescaleSettings.inspect}" unless PWMPrescaleSettings.include? division
-    if @hardware_pwm_prescale != division
-      @hardware_pwm_prescale = division
-      control_transfer(function: :change_pwm_prescale, wValue: PWMPrescaleSettings.index(division))
-    end
-  end
-  
-  ############# Servos ############
-  
-  # Get the current andle of a servo connected to a hardware pwm channel as an angle between roughly -90° and +90°
-  def servo_read hardware_pwm_channel
-    value = hardware_pwm_read(hardware_pwm_channel)
-    90 - ((value - 13).to_f * (180.0 / 23.0))
-  end
-  
-  # Set a servo connected to a hardware pwm channel to an angle between -90° and +90° inclusive
-  def servo_write hardware_pwm_channel, angle
-    self.hardware_pwm_prescale = 1024 # make sure our PWM is running at the correct frequency
-    
-    value = ((angle + 90.0) / (180.0 / 23.0)).round + 13
-    
-    hardware_pwm_write(hardware_pwm_channel, value)
-  end
-  
-  ############# Software PWM ##############
-  
-  # Has the software pwm module been enabled?
-  attr_reader :software_pwm_enabled
-  
-  # Set if the software pwm module is enabled or inactive
-  def software_pwm_enabled= value
-    value = !! value # booleanify it
-    if @software_pwm_enabled != value
-      control_transfer(function: :init_softpwm, wValue: value ? 1 : 0)
-      @software_pwm_enabled = value
-    end
-  end
-  
-  # An array of current software pwm values
-  def software_pwm; @software_pwm.dup; end
-  
-  # Set software pwm to the values of an array - values must be a number between 0 and 255 inclusive
-  def software_pwm= values
-    self.software_pwm_enabled = true
-    
-    3.times do |idx|
-      @software_pwm[idx] = values[idx].to_i % 256
-    end
-    
-    control_transfer(function: :update_softpwm, wValue: @software_pwm[1] << 8 | @software_pwm[0], wIndex: @software_pwm[2])
-  end
-  
-  # Get the value of a single software pwm channel
-  def software_pwm_read channel; @software_pwm[map_resolve(SoftwarePWMPinMap, channel)]; end
-  
-  # Set the value of a single software pwm channel - value must be a number between 0 and 255 inclusive
-  def software_pwm_write channel, value
-    state = self.software_pwm
-    state[map_resolve(SoftwarePWMPinMap, channel)] = value
-    self.software_pwm = state
-  end
-  
-  
   
   # Returns version number of firmware on LittleWire hardware
   def version
-    v = control_transfer(function: :version, dataIn: 1).unpack('c').first
-    v = VersionCodes[v] if VersionCodes.has_key? v
-    v = "0x#{v.to_s(16)}" if v.is_a? Integer
-    v
+    @version ||= version_hex.to_s(16).chars.entries.join('.')
   end
   
+  # get the SPI interface
+  def spi
+    @spi ||= SPI.new(self)
+  end
   
+  # get the I2C interface
+  def i2c
+    @i2c ||= I2C.new(self)
+  end
+  
+  # get the 1wire interface (requires firmware 1.1 or newer
+  def one_wire
+    raise "You need to update your LittleWire firmware to version 1.1 to use One Wire" unless version_hex >= 0x11
+    @one_wire ||= OneWire.new(self)
+  end
   
   
   
@@ -342,9 +192,7 @@ class LittleWire
       ObjectSpace.define_finalizer(self, self.class.create_destructor(@io))
       
       # check for compatible firmware on littlewire device and warn if is unknown
-      ver = self.version
-      warn "Unknown littlewire.cc firmware version #{ver.to_s(16)} might cause problems" unless SupportedVersions.include? ver
-      warn "LittleWire is running old firmware version #{ver} - some features might not work" if ver != SupportedVersions.first
+      warn "Unknown littlewire.cc firmware version #{version} might cause problems" unless SupportedVersions.include? version
     end
     @io
   end
@@ -432,14 +280,14 @@ class LittleWire
   
   
   # lookup a pin name in a map and return it's raw identifier
-  def map_resolve map, value #:nodoc:
+  def get_pin map, value #:nodoc:
     value = value.to_sym if value.is_a? String
     value = map[value] if map.has_key? value
     value
   end
   
   # translate possible literal values in to a boolean true or false (meaning high or low)
-  def map_digital_value value #:nodoc:
+  def get_boolean value #:nodoc:
     # some exceptions
     value = false if value == :low or value == 0 or value == nil or value == :off or value == :ground or value == :gnd
     !! value # double invert value in to boolean form
