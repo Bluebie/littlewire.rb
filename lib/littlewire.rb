@@ -91,6 +91,13 @@ class LittleWire
     @hardware_pwm = [0, 0]
     @software_pwm_enabled = :unknown
     @software_pwm = [0, 0, 0]
+    
+    # shut everything down, trying to setup littlewire in consistent initial state in case previous programs
+    # messed with it's state
+    self.software_pwm_enabled = false
+    self.hardware_pwm_enabled = false
+    self.pin_mode(pin1: :input, pin2: :input, pin3: :input, pin4: :input)
+    self.digital_write(pin1: :gnd, pin2: :gnd, pin3: :gnd, pin4: :gnd)
   end
   
   # creates a lambda to close usb device when LittleWire is deallocated, without LittleWire instance closured in to it recursively

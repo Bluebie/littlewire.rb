@@ -1,5 +1,5 @@
 module LittleWire::Digital
-  EnableBulkWrite = true
+  EnableBulkWrite = false # this thing seems to not work good - not ready for real world use
   # these firmwares have a default state specified, enabling bulk writing
   BulkWriteDefaultStates = { '1.1' => 0b00001000 } # D- usb bit is high, others are low
   BulkWriteBitmask =       { '1.1' => 0b00100111 }
@@ -11,8 +11,8 @@ module LittleWire::Digital
   # :on and :off, :vcc and :gnd or :ground
   #
   # `digital_write` can also be called with a hash: `my_wire.digital_write(:pin1 => true)`
-  # allowing multiple pins to be set at once. For known versions of the LittleWire firmware, bulk
-  # updates are done in a single request.
+  # allowing multiple pins to be set at once. A system for updating all pins simultaniously is being
+  # worked on, but is not yet stable, so for now digital_write uses a request for each pin.
   #
   # Automatically disables PWM and Servo features if you try to write to a pin used by those modules
   def digital_write *args
@@ -22,8 +22,8 @@ module LittleWire::Digital
       raise "Incorrect Arguments" unless args.first.respond_to? :to_hash
       hash = args.first.to_hash
       
-      self.hardware_pwm_enabled = false if hash.keys.any? { |pin| LittleWire::HardwarePWMPinMap.has_key? pin }
-      self.software_pwm_enabled = false if hash.keys.any? { |pin| LittleWire::SoftwarePWMPinMap.has_key? pin }
+      #self.hardware_pwm_enabled = false if hash.keys.any? { |pin| LittleWire::HardwarePWMPinMap.has_key? pin }
+      #self.software_pwm_enabled = false if hash.keys.any? { |pin| LittleWire::SoftwarePWMPinMap.has_key? pin }
       
       if use_experimental_bulk_write?
         # could cause problems - must do tests when deciding if to enable this or not
@@ -39,9 +39,7 @@ module LittleWire::Digital
         value = (@bulk_write_bitmap & BulkWriteBitmask[self.version]) | BulkWriteDefaultStates[self.version]
         control_transfer(function: :write, wValue: value)
       else
-        puts "digital_write(#{hash.inspect})"
         hash.each do |pin, state|
-          puts "Setting #{pin.inspect} to #{state.inspect}"
           control_transfer(
             function: get_boolean(state) ? :pin_set_high : :pin_set_low,
             wValue: get_pin(LittleWire::DigitalPinMap, pin)

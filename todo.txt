@@ -6,7 +6,7 @@ Things not yet tested and maybe not yet implemented
 - onewire
 
 Things which need doing
-- Automatically reset device to a default state on LittleWire.initialize
+- Automatically reset device to a default state on LittleWire.initialize - this might be done now?
 
 Things tested a little bit successfully
 - setting pin mode
