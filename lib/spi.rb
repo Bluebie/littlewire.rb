@@ -6,12 +6,13 @@ class LittleWire::SPI
   end
   
   # send and receive a message of up to four bytes
-  def send send, receive, auto_chipselect = false
+  def send send, auto_chipselect = false
     mode = auto_chipselect ? 1 : 0
     @wire.control_transfer(
       wRequest: 0xF0 + send.length + (mode << 3),
       wValue: send.bytes[1] << 8 | send.bytes[0],
-      wIndex: send.bytes[3] << 8 | send.bytes[0]
+      wIndex: send.bytes[3] << 8 | send.bytes[0],
+      dataIn: send.length
     )
   end
   
