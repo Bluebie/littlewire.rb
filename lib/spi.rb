@@ -8,11 +8,12 @@ class LittleWire::SPI
   # send and receive a message of up to four bytes
   def send send, auto_chipselect = false
     mode = auto_chipselect ? 1 : 0
+    bytes = send.bytes.to_a
     @wire.control_transfer(
-      wRequest: 0xF0 + send.length + (mode << 3),
-      wValue: send.bytes[1] << 8 | send.bytes[0],
-      wIndex: send.bytes[3] << 8 | send.bytes[0],
-      dataIn: send.length
+      bRequest: 0xF0 + send.length + (mode << 3),
+      wValue: bytes[1].to_i << 8 | bytes[0].to_i,
+      wIndex: bytes[3].to_i << 8 | bytes[2].to_i,
+      dataIn: bytes.length
     )
   end
   
