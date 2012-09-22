@@ -120,11 +120,11 @@ class LittleWire
   
   # implementations of littlewire functions
   # - generic requests
-  def echo; control_transfer(function: :echo, dataIn: 8).unpack('S<*'); end # echo's usb request for testing
-  def read; control_transfer(function: :read, wIndex: 0, dataIn: 1); end
-  def write byte; control_transfer(function: :write, wIndex: 0, wValue: byte); end
-  def clear_bit bit; control_transfer(function: :clear_bit, wIndex: 0, wValue: bit); end
-  def set_bit bit; control_transfer(function: :set_bit, wIndex: 0, wValue: bit); end
+  #def echo; control_transfer(function: :echo, dataIn: 8).unpack('S<*'); end # echo's usb request for testing
+  #def read; control_transfer(function: :read, wIndex: 0, dataIn: 1); end
+  #def write byte; control_transfer(function: :write, wIndex: 0, wValue: byte); end
+  #def clear_bit bit; control_transfer(function: :clear_bit, wIndex: 0, wValue: bit); end
+  #def set_bit bit; control_transfer(function: :set_bit, wIndex: 0, wValue: bit); end
   # - programming requests
   #def power_up sck_period, reset; control_transfer(function: :power_up, wIndex: sck_period, wValue: reset ? 1 : 0); end
   #def power_down; control_transfer(function: :power_down); end
