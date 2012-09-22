@@ -53,8 +53,8 @@ lights... whatever floats your boat really. The possabilities are not especially
 limited. Most projects you might use an Arduino for can be done with a Little Wire
 if you don't mind leaving a computer turned on connected to it, and with the advent
 of Raspberry Pi, that's not all that bad of an idea. I use my Little Wire to quickly
-test ideas before changing them to C and uploading them to cheaper attiny chips (also
-using the Little Wire to program them)
+test ideas before changing them to C and uploading them to cheaper avr tiny chips
+(also using the Little Wire to program them)
 
 
 ### a warning ###

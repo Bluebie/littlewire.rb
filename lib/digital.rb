@@ -58,7 +58,7 @@ module LittleWire::Digital
   # `sensor_a, sensor_b = my_wire.digital_read(:pin1, :pin2)` which reads both pins at
   # the exact same instant in just one USB request, returning an array of the results
   #
-  # digital_read tends to work best when the pin in :input mode. See also #pin_mode
+  # digital_read works best when the pin is in :input mode. See also #pin_mode
   def digital_read *args
     raise "Incorrect Arguments" if args.length < 1
     pins = args.flatten
