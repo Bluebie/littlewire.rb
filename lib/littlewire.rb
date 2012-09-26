@@ -278,10 +278,9 @@ class LittleWire
   
   # calculate usb request type
   def usb_request_type opts #:nodoc:
-    c = LIBUSB::Call
-    value = c::RequestTypes[:REQUEST_TYPE_VENDOR] | c::RequestRecipients[:RECIPIENT_DEVICE]
-    value |= c::EndpointDirections[:ENDPOINT_OUT] if opts.has_key? :dataOut
-    value |= c::EndpointDirections[:ENDPOINT_IN] if opts.has_key? :dataIn
+    value = LIBUSB::REQUEST_TYPE_VENDOR | LIBUSB::RECIPIENT_DEVICE
+    value |= LIBUSB::ENDPOINT_OUT if opts.has_key? :dataOut
+    value |= LIBUSB::ENDPOINT_IN if opts.has_key? :dataIn
     return value
   end
   
