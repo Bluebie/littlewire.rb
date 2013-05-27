@@ -1,4 +1,4 @@
-require '../lib/littlewire.rb'
+require 'littlewire'
 wire = LittleWire.connect
 pin = :pin1
 speed = 1

@@ -1,6 +1,6 @@
 # Send up to 64 colours to a string of WS2812 LEDs or 800khz (version 2) Adafruit Flora NeoPixels
 # Any 800khz mode ws2811 pixels will work
-require '../lib/littlewire.rb'
+require 'littlewire'
 wire = LittleWire.connect
 
 puts DATA.read # print out the little ascii art thing at the end of this file

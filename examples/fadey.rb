@@ -1,7 +1,7 @@
 # A little blinky test to show how to make stuff happen with a littlewire in ruby!
 #
 # To get started, plug an LED in to the ISP cable between ground and Pin 4 (they're next to each other) via a resistor (resistor not optional)
-require '../lib/littlewire.rb'
+require 'littlewire.rb'
 
 wire = LittleWire.connect
 

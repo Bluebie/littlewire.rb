@@ -1,4 +1,4 @@
-require '../lib/littlewire.rb'
+require 'littlewire'
 wire = LittleWire.connect
 num_pixels = ARGV.first.to_i
 
