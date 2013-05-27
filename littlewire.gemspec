@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'littlewire'
-  s.version = '0.9'
+  s.version = '0.9.2'
   s.summary = "A tiny library for littlewire.cc usb devices"
   s.author = 'Bluebie'
   s.email = "a@creativepony.com"
@@ -15,4 +15,5 @@ Gem::Specification.new do |s|
   s.rdoc_options << '--main' << 'lib/littlewire.rb'
   
   s.add_dependency 'libusb', '>= 0.2.0'
+  s.add_dependency 'colorist', '>= 0.0.2'
 end
