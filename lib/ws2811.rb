@@ -30,23 +30,64 @@ class LittleWire::WS2811
     until colors_buffer.empty?
       
       if colors_buffer.length > 1
-        color = colors_buffer.shift
+        preload(colors_buffer.shift)
         
-        @wire.control_transfer(
-          function: :ws2812_preload,
-          wIndex: color.b << 8 | color.r,
-          wValue: color.g << 8
-        )
       elsif colors_buffer.length == 1
-        color = colors_buffer.shift
+        write(colors_buffer.shift, output_pin)
         
-        @wire.control_transfer(
-          function: :ws2812_write,
-          wIndex: color.b << 8 | color.r,
-          wValue: color.g << 8 | output_pin
-        )
       end
     end
+  end
+  
+  def set *colors
+    @colors = colors.flatten
+    output
+  end
+  
+  def black!
+    @colors = ['black'] * 64
+    output
+  end
+  
+  private
+  
+  # push another set of rgb values to the buffer
+  def preload color
+    @wire.control_transfer(
+      function: :ws2812,
+      wIndex: color.b << 8 | color.r,
+      wValue: color.g << 8 | 0x20
+    )
+  end
+  
+  # send buffer from littlewire to LEDs
+  def flush pin
+    @wire.control_transfer(
+      function: :ws2812,
+      wIndex: 0, wValue: pin | 0x10
+    )
+    output_delay(@colors.length)
+  end
+  
+  # optimises preload followed by flush in to a single usb call
+  #   def write color, pin
+  #     preload color
+  #     flush pin
+  #   end
+  def write color, pin
+    @wire.control_transfer(
+      function: :ws2812,
+      wIndex: color.b << 8 | color.r,
+      wValue: color.g << 8 | pin | 0x30
+    )
+    output_delay(@colors.length)
+  end
+  
+  # wait as long as it will take for the message to output to the LED strip, so we don't make
+  # any more USB requests while the device is busy flushing pixels with interrupts disabled
+  def output_delay(pixels)
+    # each pixel consumes 30us for it's data, plus 50us reset at end of transmission
+    sleep((0.00003 * pixels) + 0.00005)
   end
 end
 

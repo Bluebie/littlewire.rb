@@ -272,8 +272,7 @@ class LittleWire
     :onewire_write_bit,   # 51
     :pic_24f_programming, # 52 - experimental
     :pic_24f_sendsix,     # 53 - experimental
-    :ws2812_write,        # 54 - experimental
-    :ws2812_preload       # 55 - experimental
+    :ws2812,              # 54 - experimental
     # special cases
     # pic 24f send bytes - request = 0xD*
     # i2c send multiple messages - request = 0xE*     ### experimental ###
