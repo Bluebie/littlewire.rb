@@ -11,6 +11,7 @@ require_relative 'servo'
 require_relative 'spi'
 require_relative 'i2c'
 require_relative 'one-wire'
+require_relative 'ws2811'
 
 # LittleWire class represents LittleWire's connected to your computer via USB
 # 
@@ -25,10 +26,10 @@ class LittleWire
   
   # pin name to numeric internal code maps
   DigitalPinMap = { # maps common names to bit positions in PORTB
-    pin1: 1, d1: 1, miso:  1, pwm_b: 1, pwm_2: 1,
-    pin2: 2, d2: 2, sck:   2,
-    pin3: 5, d3: 5, reset: 5,
-    pin4: 0, d4: 0, mosi:  0, pwm_a: 0, pwm_1: 0 }
+    pin1: 1, d1: 1, miso:  1, pwm_b: 1, pwm_2: 1, ds1: 1,
+    pin2: 2, d2: 2, sck:   2, ds2: 2,
+    pin3: 5, d3: 5, reset: 5, ds5: 5,
+    pin4: 0, d4: 0, mosi:  0, pwm_a: 0, pwm_1: 0, ds0: 0 }
   AnalogPinMap = { # maps common names to switch index in littlewire firmware
     a1: 0, adc_1: 0, reset: 0, pin3: 0, d3: 0,
     a2: 1, adc_2: 1, sck:   1, pin2: 1, d2: 1,
@@ -65,7 +66,7 @@ class LittleWire
     softpwm_c: [:software_pwm, :softpwm_c],
   }
   
-  SupportedVersions = ['1.1', '1.0'] # in order of newness. # TODO: Add version 1.0?
+  SupportedVersions = ['1.2', '1.1', '1.0'] # in order of newness. # TODO: Add version 1.0?
   
   
   # An array of all unclaimed littlewires connected to computer via USB
@@ -151,11 +152,22 @@ class LittleWire
     @i2c ||= I2C.new(self)
   end
   
-  # get the 1wire interface (requires firmware 1.1 or newer
+  # get the 1wire interface (requires firmware 1.1 or newer)
   def one_wire
     raise "You need to update your LittleWire firmware to version 1.1 to use One Wire" unless version_hex >= 0x11
     @one_wire ||= OneWire.new(self)
   end
+  
+  # get the ws2811 led strip interface (requires firmware 1.2 or newer)
+  # optionally call with pin number to preset it
+  def ws2811 pin = false
+    raise "You need to update your LittleWire firmware to version 1.2 to use One Wire" unless version_hex >= 0x12
+    @ws2811 ||= Array.new
+    @ws2811[pin || 0] ||= WS2811.new(self, pin)
+    return @ws2811[pin || 0]
+  end
+  
+  alias_method :ws2812, :ws2811
   
   
   
@@ -259,7 +271,9 @@ class LittleWire
     :onewire_read_bit,    # 50
     :onewire_write_bit,   # 51
     :pic_24f_programming, # 52 - experimental
-    :pic_24f_sendsix      # 53 - experimental
+    :pic_24f_sendsix,     # 53 - experimental
+    :ws2812_write,        # 54 - experimental
+    :ws2812_preload       # 55 - experimental
     # special cases
     # pic 24f send bytes - request = 0xD*
     # i2c send multiple messages - request = 0xE*     ### experimental ###
