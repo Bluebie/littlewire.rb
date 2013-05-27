@@ -21,5 +21,5 @@ loop do
   lit += 1
   lit %= num_pixels
   
-  sleep 0.1
+  sleep 0.01
 end
