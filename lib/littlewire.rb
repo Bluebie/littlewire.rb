@@ -163,8 +163,9 @@ class LittleWire
   def ws2811 pin = false
     raise "You need to update your LittleWire firmware to version 1.2 to use One Wire" unless version_hex >= 0x12
     @ws2811 ||= Array.new
-    @ws2811[pin || 0] ||= WS2811.new(self, pin)
-    return @ws2811[pin || 0]
+    pin = get_pin(LittleWire::DigitalPinMap, pin || 0)
+    @ws2811[pin] ||= WS2811.new(self, pin)
+    return @ws2811[pin]
   end
   
   alias_method :ws2812, :ws2811

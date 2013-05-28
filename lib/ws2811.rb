@@ -39,10 +39,11 @@ class LittleWire::WS2811
     end
   end
   
-  def set *colors
+  def send *colors
     @colors = colors.flatten
     output
   end
+  alias_method :set, :send
   
   def black!
     @colors = ['black'] * 64
@@ -55,8 +56,8 @@ class LittleWire::WS2811
   def preload color
     @wire.control_transfer(
       function: :ws2812,
-      wIndex: color.b << 8 | color.r,
-      wValue: color.g << 8 | 0x20
+      wIndex: color.b.to_i << 8 | color.r.to_i,
+      wValue: color.g.to_i << 8 | 0x20
     )
   end
   
@@ -64,7 +65,7 @@ class LittleWire::WS2811
   def flush pin
     @wire.control_transfer(
       function: :ws2812,
-      wIndex: 0, wValue: pin | 0x10
+      wIndex: 0, wValue: pin.to_i | 0x10
     )
     output_delay(@colors.length)
   end
@@ -77,8 +78,8 @@ class LittleWire::WS2811
   def write color, pin
     @wire.control_transfer(
       function: :ws2812,
-      wIndex: color.b << 8 | color.r,
-      wValue: color.g << 8 | pin | 0x30
+      wIndex: color.b.to_i << 8 | color.r.to_i,
+      wValue: color.g.to_i << 8 | pin.to_i | 0x30
     )
     output_delay(@colors.length)
   end
@@ -86,8 +87,8 @@ class LittleWire::WS2811
   # wait as long as it will take for the message to output to the LED strip, so we don't make
   # any more USB requests while the device is busy flushing pixels with interrupts disabled
   def output_delay(pixels)
-    # each pixel consumes 30us for it's data, plus 50us reset at end of transmission
-    sleep((0.00003 * pixels) + 0.00005)
+    # each pixel consumes 30us for it's data, plus a little extra for reset
+    sleep((0.00003 * pixels) + 0.001)
   end
 end
 
