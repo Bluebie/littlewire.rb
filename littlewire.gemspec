@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'littlewire'
-  s.version = '0.9.3'
+  s.version = '0.9.4'
   s.summary = "A tiny library for littlewire.cc usb devices"
   s.author = 'Bluebie'
   s.email = "a@creativepony.com"
