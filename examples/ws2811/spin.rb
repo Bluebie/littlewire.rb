@@ -10,7 +10,7 @@ loop do
     Color.from_rgb(0, brightness.to_i, 0)
   end
   
-  wire.ws2811.output :pin1
+  wire.ws2811.output :pin4
   
   sleep 1.0 / 60.0
 end
