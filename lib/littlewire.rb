@@ -204,7 +204,21 @@ class LittleWire
     self.send "#{pin[0]}_write", pin[1], value
   end
   
-  protected
+  
+  # lookup a pin name in a map and return it's raw identifier
+  def get_pin map, value #:nodoc:
+    value = value.to_sym if value.is_a? String
+    value = map[value] if map.has_key? value
+    value
+  end
+  
+  # translate possible literal values in to a boolean true or false (meaning high or low)
+  def get_boolean value #:nodoc:
+    # some exceptions
+    value = false if value == :low or value == 0 or value == nil or value == :off or value == :ground or value == :gnd
+    !! value # double invert value in to boolean form
+  end
+  
   # raw opened device
   def io #:nodoc:
     unless @io
@@ -296,20 +310,5 @@ class LittleWire
     value |= LIBUSB::ENDPOINT_OUT if opts.has_key? :dataOut
     value |= LIBUSB::ENDPOINT_IN if opts.has_key? :dataIn
     return value
-  end
-  
-  
-  # lookup a pin name in a map and return it's raw identifier
-  def get_pin map, value #:nodoc:
-    value = value.to_sym if value.is_a? String
-    value = map[value] if map.has_key? value
-    value
-  end
-  
-  # translate possible literal values in to a boolean true or false (meaning high or low)
-  def get_boolean value #:nodoc:
-    # some exceptions
-    value = false if value == :low or value == 0 or value == nil or value == :off or value == :ground or value == :gnd
-    !! value # double invert value in to boolean form
   end
 end
