@@ -1,10 +1,8 @@
-require '../../lib/littlewire'
+require 'littlewire'
 wire = LittleWire.connect
 pin = :pin4
 speed = 1
 num_leds = 64
-
-wire.ws2811(pin).wiring = :florapixels_v1
 
 loop do
   puts "red"
