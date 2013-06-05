@@ -12,18 +12,81 @@ require 'colorist'
 class LittleWire::WS2811
   attr_accessor :colors
   attr_accessor :pin
-  
+  attr_reader :wiring
+  ColorTransformer = {
+    rgb: ->(input) {
+      input # passthrough
+    },
+    grb: ->(input) {
+      Colorist::Color.from_rgb(input.g, input.r, input.b)
+    },
+    bgr: ->(input) {
+      Colorist::Color.from_rgb(input.b, input.r, input.g)
+    },
+    gbr: ->(input) {
+      Colorist::Color.from_rgb(input.g, input.b, input.r)
+    },
+    rbg: ->(input) {
+      Colorist::Color.from_rgb(input.r, input.b, input.g)
+    },
+    greyscale: ->(input) {
+      grey = (input.r + input.g + input.b) / 3 # average the colours
+      Colorist::Color.from_rgb(grey, grey, grey)
+    },
+    # lookup chart
+    florapixel_v1: :rbg,
+    florapixels_v1: :florapixel_v1,
+    ws2812: :rgb,
+    florapixel_v2: :ws2812,
+    florapixels_v2: :florapixel_v2,
+    grayscale: :greyscale, # Woo English!
+    white: :greyscale,
+  }
+  ChannelSize = 64 # LittleWire can store 64 values
   
   def initialize wire, default_pin = false # :nodoc:
     @wire = wire
     @pin = default_pin
     @colors = []
+    @wiring = :rgb
+    @wiring_map = ColorTransformer[:rgb]
+  end
+  
+  # Set the pixel wiring style. The default :rgb is great for the little ws2812 LEDs
+  # which have the chips built in as a little black cube inside the LED. This setting is for
+  # other LEDs where the controller chip is outside the LED. In some of these LEDs the red,
+  # green, and blue outputs of the controller chip connect to different colours of LEDs!
+  # 
+  # Of particular note, the original Adafruit Florapixels (now called version 1) can be modified
+  # to run at the 800khz speed instead of 400khz by breaking off this leg on the chip on the back:
+  # 
+  #            ______
+  #          -|o     |-
+  #          -|      |-  <--- this one!
+  #          -|      |-
+  #          -|______|-
+  #
+  # This makes them compatible with LittleWire and cheap LED strips, but these florapixels are
+  # wired bizarrely in RBG order. I rebuke thee, adafruit industries!! Also supposedly some
+  # other version of the v1 florapixels used another different wiring and I don't think they're
+  # labeled differently, so try it and see what works for you, or just give up and buy some
+  # ws2812 strip from aliexpress - it's only like 30¢ per LED including shipping anyway!
+  def wiring=(style)
+    @wiring_map = style.to_sym
+    # loop till we resolve symbol chain in to a real proc we can map colours through
+    @wiring_map = ColorTransformer[@wiring_map] while @wiring_map.is_a? Symbol
+    # if never exhausted lookup, you all get errors!!! ERRORS FOR EVERYONE!!!
+    raise "Unknown Wiring Style #{style.inspect}! Must be one of " +
+          "#{ColorTransformer.keys.map { |x| x.inspect }.join(', ')}" +
+          " or a Proc which transforms a Colorist::Color" if @wiring_map == nil
+    @wiring = style
   end
   
   # send colours to strip, optionally specifying a pin if not specified via
-  # littlewire.ws2811(pin).output
+  #
+  #   littlewire.ws2811(pin).output
   def output pin = nil
-    colors_buffer = @colors.map { |i| i.is_a?(Colorist::Color) ? i : i.to_color }
+    colors_buffer = @colors.map { |i| @wiring_map[i.is_a?(Colorist::Color) ? i : i.to_color] }
     output_pin = @wire.get_pin(LittleWire::DigitalPinMap, pin || @pin)
     raise "Must specify output pin for ws2811 strip" unless output_pin.is_a? Integer
     
@@ -39,15 +102,19 @@ class LittleWire::WS2811
     end
   end
   
+  # Set strip to an array of colours, automatically outputting them to the strip immediately
   def send *colors
     @colors = colors.flatten
     output
   end
   alias_method :set, :send
   
+  # Set the whole strip to be black! This can be nice at the start of your program, because
+  # the strip starts out being whatever colours it was when it was powered up, which can be
+  # random - this makes sure everything is black, at least up to the max 64 LEDs littlewire
+  # supports per channel
   def black!
-    @colors = ['black'] * 64
-    output
+    send(['black'] * ChannelSize)
   end
   
   private
