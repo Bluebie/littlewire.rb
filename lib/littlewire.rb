@@ -31,8 +31,8 @@ class LittleWire
     pin3: 5, d3: 5, reset: 5, ds5: 5,
     pin4: 0, d4: 0, mosi:  0, pwm_a: 0, pwm_1: 0, ds0: 0 }
   AnalogPinMap = { # maps common names to switch index in littlewire firmware
-    a1: 0, adc_1: 0, reset: 0, pin3: 0, d3: 0,
-    a2: 1, adc_2: 1, sck:   1, pin2: 1, d2: 1,
+    a1: 0, adc_1: 0, reset: 0, pin3: 0, d3: 0, ds5: 0,
+    a2: 1, adc_2: 1, sck:   1, pin2: 1, d2: 1, ds2: 1,
     temperature: 2, temp: 2 }
   HardwarePWMPinMap = { # maps common pin names to @hardware_pwm array index
     pwm_b: 1, pwm_1: 1, d1: 1, pin1: 1, miso: 1,
@@ -164,6 +164,7 @@ class LittleWire
     raise "You need to update your LittleWire firmware to version 1.2 to use One Wire" unless version_hex >= 0x12
     @ws2811 ||= Array.new
     pin = get_pin(LittleWire::DigitalPinMap, pin || 0)
+    raise "Unknown pin #{pin.inspect}" unless pin.is_a? Integer
     @ws2811[pin] ||= WS2811.new(self, pin)
     return @ws2811[pin]
   end
