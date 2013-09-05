@@ -15,7 +15,7 @@ module LittleWire::Analog
     end
     
     control_transfer(function: :read_adc,
-                       wValue: get_pin(AnalogPinMap, input_name),
+                       wValue: get_pin(LittleWire::AnalogPinMap, input_name),
                        dataIn: 2).unpack('S<').first / 1024.0
   end
   

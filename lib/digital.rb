@@ -65,7 +65,7 @@ module LittleWire::Digital
     port = control_transfer(function: :read, dataIn: 1).unpack('c').first
     mapped = pins.map do |pin|
       pin = get_pin(LittleWire::DigitalPinMap, pin)
-      (port & pin) != 0 # discover if pin is high or low
+      ((port >> pin) & 1) == 1 # discover if pin is high or low
     end
     
     if args.length == 1 and (args.first.is_a?(Symbol) or args.first.is_a?(Integer))
