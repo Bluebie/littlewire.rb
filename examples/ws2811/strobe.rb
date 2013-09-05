@@ -24,7 +24,7 @@ Thread.abort_on_exception = true
 interface = Thread.start do
   loop do
     print "Enter BPM: "
-    str = gets.strip
+    str = $stdin.gets.strip
     time = Time.now.to_f
     new_bpm = bpm
     
