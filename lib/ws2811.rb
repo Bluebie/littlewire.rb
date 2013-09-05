@@ -4,11 +4,13 @@ require 'colorist'
 # To use, simply set colours in the 'colors' array property as css color strings
 # or Colorist::Color objects, then call #output(pin) to send it on it's way
 # 
-# Note that this requires firmware v1.2 which is not yet released and there is a
-# maximum of 64 lights in the firmware at the time of writing
-# 
-# Also note that you can connect 64 leds to each of the digital pins on the LittleWire
-# or Digispark device, and this enables you a total of 64 * 4 = 256 lights! Neato!
+# Note that this requires firmware v1.2 and there is a maximum of 64 lights in the
+# firmware at the time of writing. You can connect 64 leds to each of the digital
+# pins on the LittleWire or Digispark device, and this enables you a total of
+# 64 * 4 = 256 lights! Neato! Remember a USB port cannot supply enough current to
+# power 256 lights at full brightness. Power usage is roughly (20ma * color_channel)
+# per light. So 64 lights all lit full brightness white consumes 20*3*64 = 3.84 amps!
+# Wow that's a lot of light for one little wire! And you can have four of those!
 class LittleWire::WS2811
   attr_accessor :colors
   attr_accessor :pin

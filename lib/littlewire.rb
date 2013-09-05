@@ -1,6 +1,3 @@
-# A little library for a little wire, by Bluebie
-# Provides an arduino or wiring style interface to the LittleWire device's IO features
-# and provides a nicer invented ruby-style interface also.
 require 'libusb'
 class LittleWire; end
 require_relative 'digital'
@@ -13,6 +10,10 @@ require_relative 'i2c'
 require_relative 'one-wire'
 require_relative 'ws2811'
 
+# A little library for a little wire, by Bluebie
+# Provides an arduino or wiring style interface to the LittleWire device's IO features
+# and provides a nicer invented ruby-style interface also.
+# 
 # LittleWire class represents LittleWire's connected to your computer via USB
 # 
 # Most of the time you'll only have one LittleWire - in this case, use LittleWire.connect to get
