@@ -33,9 +33,9 @@ class LittleWire::I2C
     byte_sets.each_with_index do |slice, index|
       stop = end_with_stop && index >= byte_sets.length - 1 
       @wire.control_transfer(
-        wRequest: 0xE0 | slice.length | ((stop ? 1 : 0) << 3),
-        wValue: (slice.bytes[1] << 8) + slice.bytes[0],
-        wIndex: (slice.bytes[3] << 8) + slice.bytes[2]
+        bRequest: 0xE0 | slice.length | ((stop ? 1 : 0) << 3),
+        wValue: ((slice[1] || 0) << 8) + (slice[0] || 0),
+        wIndex: ((slice[3] || 0) << 8) + (slice[2] || 0)
       )
     end
   end
