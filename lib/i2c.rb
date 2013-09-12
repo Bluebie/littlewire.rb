@@ -26,11 +26,11 @@ class LittleWire::I2C
   # write data to i2c device, optionally sending a stop when finished
   def write send_buffer, end_with_stop = false
     send_buffer = send_buffer.pack('c*') if send_buffer.is_a? Array
-    raise "Send buffer is too long" if send_buffer.length > 7
+    raise "Send buffer is too long" if send_buffer.length > 4
     
     # TODO: Send multiple requests to handle send buffers longer than 7 bytes
     @wire.control_transfer(
-      wRequest: 0xE0 | send_buffer.length | (end_with_stop << 3),
+      wRequest: 0xE0 | send_buffer.length | ((end_with_stop ? 1 : 0) << 3),
       wValue: (send_buffer.bytes[1] << 8) + send_buffer.bytes[0],
       wIndex: (send_buffer.bytes[3] << 8) + send_buffer.bytes[2]
     )
