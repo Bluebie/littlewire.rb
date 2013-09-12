@@ -29,11 +29,20 @@ class LittleWire::I2C
     raise "Send buffer is too long" if send_buffer.length > 4
     
     # TODO: Send multiple requests to handle send buffers longer than 7 bytes
-    @wire.control_transfer(
-      wRequest: 0xE0 | send_buffer.length | ((end_with_stop ? 1 : 0) << 3),
-      wValue: (send_buffer.bytes[1] << 8) + send_buffer.bytes[0],
-      wIndex: (send_buffer.bytes[3] << 8) + send_buffer.bytes[2]
-    )
+    byte_sets = send_buffer.bytes.each_slice(4).to_a
+    byte_sets.each_with_index do |slice, index|
+      stop = end_with_stop && index >= byte_sets.length - 1 
+      @wire.control_transfer(
+        wRequest: 0xE0 | slice.length | ((stop ? 1 : 0) << 3),
+        wValue: (slice.bytes[1] << 8) + slice.bytes[0],
+        wIndex: (slice.bytes[3] << 8) + slice.bytes[2]
+      )
+    end
+  end
+  
+  # send a stop without sending any bytes (idk if this is even a thing people do?)
+  def stop
+    write [], true
   end
   
   # set the update delay of LittleWire's i2c module
