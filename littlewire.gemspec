@@ -9,8 +9,10 @@ Gem::Specification.new do |s|
   "littlewire.cc's wonderful gadget. littlewire.rb provides general purpose digital IO, pulse width modulation analog " +
   "outputs, analog inputs, SPI, I2C, One Wire, and rough servo control via a friendly interface which responds both to " +
   "familliar Wiring/Arduino style methods and a more concise ruby alternative."
-  s.files = Dir['lib/**.rb'] + ['readme.md', 'license.txt'] + Dir['examples/**.rb']
+  s.files = Dir['lib/**.rb'] + ['readme.md', 'license.txt'] + Dir['examples/**.rb'] + Dir['bin/**/*.rb'] + Dir['firmware/**/*.hex']
+  s.executables << 'littlewire'
   s.require_paths = ['lib']
+  s.required_ruby_version = '>= 1.9.1'
   
   s.rdoc_options << '--main' << 'lib/littlewire.rb'
   
