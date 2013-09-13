@@ -15,52 +15,50 @@ class LittleWire::I2C
     raise "Address is too high" if address_7bit > 127
     raise "Address is too low" if address_7bit < 0
     
-    direction = 1 if direction == :out || direction == :output || direction == :write || direction == :send
-    direction = 0 if direction != 1
+    direction = 0 if direction == :out || direction == :output || direction == :write || direction == :send
+    direction = 1 if direction != 0
     config = (address_7bit.to_i << 1) | direction
     @wire.control_transfer(function: :i2c_begin, wValue: config, dataIn: 8)
     @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first == 0
   end
   
   # read bytes from i2c device, optionally ending with a stop when finished
-  def read length, options = [:stop, :nack]
+  def read length, stop_at_end = true
     @wire.control_transfer(function: :i2c_read, dataIn: 8,
-                           wValue: ((length.to_i & 0xFF) << 8) + (options.include?(:stop) ? 0 : 1),
-                           wIndex: options.include?(:nack) ? 0 : 1)
+                           wValue: ((length.to_i & 0xFF) << 8) + (stop_at_end ? 0 : 1),
+                           wIndex: stop_at_end ? 0 : 1)
     @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first(length)
   end
   
   # write data to i2c device, optionally sending a stop when finished
-  def write send_buffer, options = [:stop]
-    send_buffer = send_buffer.pack('C*') if send_buffer.is_a? Array
+  def write send_buffer, stop_at_end = true
+    #send_buffer = send_buffer.pack('C*') if send_buffer.is_a? Array
+    send_buffer = send_buffer.bytes if send_buffer.is_a? String
     
-    byte_sets = send_buffer.bytes.each_slice(4).to_a
-    byte_sets.each_with_index.map do |slice, index|
-      stop = options.include?(:stop) && index >= byte_sets.length - 1 
+    #byte_sets = send_buffer.each_slice(4).to_a
+    #byte_sets.each_with_index.map do |slice, index|
+    #  do_stop = stop_at_end && index >= byte_sets.length - 1 
+    slice = send_buffer
+    do_stop = stop_at_end
       @wire.control_transfer(
-        bRequest: 0xE0 + slice.length + ((stop ? 1 : 0) << 3),
+        bRequest: 0xE0 + slice.length + ((do_stop ? 1 : 0) << 3),
         wValue: ((slice[1] || 0) << 8) + (slice[0] || 0),
         wIndex: ((slice[3] || 0) << 8) + (slice[2] || 0),
         dataIn: 8
       )
-    end
+    #end
   end
   
   # simplified syntax to send a message to an address
-  def send address, bytes, options = [:stop]
-    raise "I2C Device #{address} Unresponsive" unless start(address, :out)
-    write(bytes, options)
+  def transmit address, *args
+    raise "I2C Device #{address} Unresponsive" unless start(address, :write)
+    write(*args)
   end
   
   # simplified syntax to read value of a register
-  def request address, bytesize = 6, options = [:stop, :nack]
+  def request address, *args
     raise "I2C Device #{address} Unresponsive" unless start(address, :in)
-    read bytesize, options
-  end
-  
-  # send a stop without sending any bytes (idk if this is even a thing people do?)
-  def stop
-    write [], true
+    read *args
   end
   
   # set the update delay of LittleWire's i2c module in microseconds
