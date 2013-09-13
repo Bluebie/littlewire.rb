@@ -9,12 +9,14 @@ class LittleWire::I2C
   # Arguments:
   #   address: (Integer) 7 bit numeric address
   #   direction: (Symbol) :in or :out
+  #
+  # Returns: true if device is active on i2c bus, false if it is unresponsive
   def start address_7bit, direction
     direction = 1 if direction == :out || direction == :output || direction == :write || direction == :send
     direction = 0 if direction != 1
     config = (address_7bit.to_i << 1) | direction
     @wire.control_transfer(function: :i2c_begin, wValue: config)
-    @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first != 0
+    response = @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first == 0
   end
   
   # read bytes from i2c device, optionally ending with a stop when finished
@@ -60,5 +62,15 @@ class LittleWire::I2C
   # set the update delay of LittleWire's i2c module in microseconds
   def delay= update_delay
     @wire.control_transfer(function: :i2c_update_delay, wValue: update_delay.to_i)
+  end
+  
+  # Search all 128 possible i2c device addresses, starting a message to each and
+  # testing if devices respond at each location.
+  #
+  # Returns: Array of Integer addresses
+  def search
+    128.times.select do |address|
+      start(address, :write)
+    end
   end
 end
