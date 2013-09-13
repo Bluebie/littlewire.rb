@@ -33,7 +33,7 @@ class Micronucleus
         page_size: page_size,
         pages: (flash_length.to_f / page_size).ceil,
         write_sleep: write_sleep.to_f / 1000.0,
-        version: "#{@device.bcdDevice >> 8}.#{@device.bcdDevice & 0xFF}",
+        version: "#{@device.bcdDevice >> 8}.#{(@device.bcdDevice & 0xFF).to_s.rjust(2, '0')}",
         version_numeric: @device.bcdDevice
       }
     end
