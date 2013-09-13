@@ -1,7 +1,7 @@
 class LittleWire::I2C
   def initialize wire
     @wire = wire
-    @wire.control_transfer(function: :i2c_init)
+    @wire.control_transfer(function: :i2c_init, dataIn:8)
   end
   
   # start an i2c message
@@ -12,32 +12,36 @@ class LittleWire::I2C
   #
   # Returns: true if device is active on i2c bus, false if it is unresponsive
   def start address_7bit, direction
+    raise "Address is too high" if address_7bit > 127
+    raise "Address is too low" if address_7bit < 0
+    
     direction = 1 if direction == :out || direction == :output || direction == :write || direction == :send
     direction = 0 if direction != 1
     config = (address_7bit.to_i << 1) | direction
-    @wire.control_transfer(function: :i2c_begin, wValue: config)
+    @wire.control_transfer(function: :i2c_begin, wValue: config, dataIn: 8)
     @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first == 0
   end
   
   # read bytes from i2c device, optionally ending with a stop when finished
-  def read length, *options
-    @wire.control_transfer(function: :i2c_read,
+  def read length, options = [:stop, :nack]
+    @wire.control_transfer(function: :i2c_read, dataIn: 8,
                            wValue: ((length.to_i & 0xFF) << 8) + (options.include?(:stop) ? 0 : 1),
                            wIndex: options.include?(:nack) ? 0 : 1)
     @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first(length)
   end
   
   # write data to i2c device, optionally sending a stop when finished
-  def write send_buffer, *options
+  def write send_buffer, options = [:stop]
     send_buffer = send_buffer.pack('C*') if send_buffer.is_a? Array
     
     byte_sets = send_buffer.bytes.each_slice(4).to_a
-    byte_sets.each_with_index do |slice, index|
+    byte_sets.each_with_index.map do |slice, index|
       stop = options.include?(:stop) && index >= byte_sets.length - 1 
       @wire.control_transfer(
-        bRequest: 0xE0 | slice.length | ((options.include?(:stop) ? 1 : 0) << 3),
+        bRequest: 0xE0 + slice.length + ((stop ? 1 : 0) << 3),
         wValue: ((slice[1] || 0) << 8) + (slice[0] || 0),
-        wIndex: ((slice[3] || 0) << 8) + (slice[2] || 0)
+        wIndex: ((slice[3] || 0) << 8) + (slice[2] || 0),
+        dataIn: 8
       )
     end
   end
