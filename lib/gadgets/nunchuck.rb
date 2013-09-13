@@ -6,27 +6,22 @@ class LittleWire
 end
 
 class LittleWire::Nunchuck
-  BusAddress = 0xA4 # Address of Nunchuck on i2c bus
-  BusReadAddress = 0xA5 # Address to read from
+  BusAddress = 0x52 # Address of Nunchuck on i2c bus
   
   def initialize wire
     @wire = wire
     
     # initialize the nunchuck
     i2c.delay = 0
-    #i2c.send BusAddress, [0x55, 0xF0]
-    #i2c.send BusAddress, [0x00, 0xFB]
-    # i2c.send BusAddress, [0xF0, 0x55]
-    # i2c.send BusAddress, [0xFB, 0x00]
-    i2c.send BusAddress, [0x40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    i2c.send BusAddress, [0x55, 0xF0]
+    i2c.send BusAddress, [0x00, 0xFB]
   end
   
   def sample
-    # set read pointer to 0
-    i2c.send BusAddress, [0] 
     # read six bytes from read address 0xa5
-    data = i2c.request(BusReadAddress, 6)
+    data = i2c.request(BusAddress, 6)
     puts data.inspect
+    i2c.send BusAddress, [0, 0]
     
     LittleWire::Nunchuck::NunchuckFrame.new(data)
   end
@@ -34,11 +29,6 @@ class LittleWire::Nunchuck
   private
   def i2c
     @i2c ||= @wire.i2c
-  end
-  
-  def ack
-    i2c.start 0x52, :out
-    i2c.write [0x00], true
   end
 end
 
@@ -82,6 +72,16 @@ class LittleWire::Nunchuck::NunchuckFrame
       @c,@z = c,z
     end
     attr_accessor :c, :z
+    
+    # is button down?
+    def down? button
+      instance_variable_get("@#{button.to_s.downcase}")
+    end
+    
+    def up? button
+      not down? button
+    end
+    
     def inspect; "<Buttons:#{'C' if @c}#{'Z' if @z}>"; end
   end
 end
