@@ -15,9 +15,9 @@ class LittleWire::I2C
     raise "Address is too high" if address_7bit > 127
     raise "Address is too low" if address_7bit < 0
     
-    direction = 0 if direction == :out || direction == :output || direction == :write || direction == :send
-    direction = 1 if direction != 0
-    config = (address_7bit.to_i << 1) | direction
+    direction = :write if direction == :out || direction == :output || direction == :send
+    config = (address_7bit.to_i << 1) | ((direction == :write) ? 0 : 1)
+    
     @wire.control_transfer(function: :i2c_begin, wValue: config, dataIn: 8)
     @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first == 0
   end
@@ -57,7 +57,7 @@ class LittleWire::I2C
   
   # simplified syntax to read value of a register
   def request address, *args
-    raise "I2C Device #{address} Unresponsive" unless start(address, :in)
+    raise "I2C Device #{address} Unresponsive" unless start(address, :read)
     read *args
   end
   
