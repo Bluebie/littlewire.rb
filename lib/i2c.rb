@@ -16,15 +16,15 @@ class LittleWire::I2C
     direction = 0 if direction != 1
     config = (address_7bit.to_i << 1) | direction
     @wire.control_transfer(function: :i2c_begin, wValue: config)
-    response = @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first == 0
+    @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first == 0
   end
   
   # read bytes from i2c device, optionally ending with a stop when finished
   def read length, *options
     @wire.control_transfer(function: :i2c_read,
-                           wValue: (length.to_i & 0xFF) << 8 | (options.include?(:stop) ? 1 : 0),
-                           wIndex: options.include?(:nack) ? 1 : 0)
-    @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes[0...length.to_i]
+                           wValue: ((length.to_i & 0xFF) << 8) + (options.include?(:stop) ? 0 : 1),
+                           wIndex: options.include?(:nack) ? 0 : 1)
+    @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first(length)
   end
   
   # write data to i2c device, optionally sending a stop when finished
@@ -43,14 +43,14 @@ class LittleWire::I2C
   end
   
   # simplified syntax to send a message to an address
-  def send address, bytes, send_stop = :stop
-    start address, :out
-    write bytes, stop: (send_stop == :stop)
+  def send address, bytes, options = [:stop]
+    raise "I2C Device #{address} Unresponsive" unless start(address, :out)
+    write(bytes, options)
   end
   
   # simplified syntax to read value of a register
-  def request address, bytesize = 6, options = [:stop]
-    start address, :in
+  def request address, bytesize = 6, options = [:stop, :nack]
+    raise "I2C Device #{address} Unresponsive" unless start(address, :in)
     read bytesize, options
   end
   
@@ -70,7 +70,19 @@ class LittleWire::I2C
   # Returns: Array of Integer addresses
   def search
     128.times.select do |address|
-      start(address, :write)
+      address_responds? address
     end
+  end
+  
+  # Test if an i2c address responds to requests - e.g. is it plugged in to the network?
+  #
+  # Arguments:
+  #   - address - an integer between 0 and 127 inclusive
+  # Returns: true or false
+  def address_responds? address
+    raise "Address must be an Integer" unless address.is_a? Integer
+    raise "Address too high. Max is 127" if address > 127
+    raise "Address too low. Needs to be at least 0" if address < 0
+    start(address, :write)
   end
 end
