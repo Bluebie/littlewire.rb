@@ -12,27 +12,26 @@ class LittleWire::Nunchuck
     @wire = wire
     
     # config i2c to reliably talk with nunchuck devices
-    #i2c.delay = 10 # this can probably be quite a bit lower. Maybe even 0
+    i2c.delay = 10 # this can probably be quite a bit lower. Maybe even 0
     
     # test if nunchuck is responsive
-    raise "Nunchuck is unresponsive" unless i2c.address_responds? BusAddress
+    # raise "Nunchuck is unresponsive" unless i2c.address_responds? BusAddress
+    # sleep 0.01
     
-    sleep 0.1
     # initialize the nunchuck
-    # i2c.send BusAddress, [0x55, 0xF0]
-    i2c.send BusAddress, [64, 0]
-    sleep 0.1
-    # i2c.send BusAddress, [0x00, 0xFB]
+    set_register 0x55, 0xf0
+    set_register 0x00, 0xfb
+    sample
   end
   
   def sample
     # read six bytes from read address 0xa5
     data = i2c.request(BusAddress, 6)
     puts data.inspect
-    data.map! { |x| (0x17 ^ x) + 0x17 } # "decrypt" data
+    #data.map! { |x| (0x17 ^ x) + 0x17 } # "decrypt" data
     sleep 0.1
-    i2c.send BusAddress, [0]
-    sleep 0.1
+    
+    set_register 0x00, 0x00
     
     LittleWire::Nunchuck::NunchuckFrame.new(data)
   end
@@ -40,6 +39,11 @@ class LittleWire::Nunchuck
   private
   def i2c
     @i2c ||= @wire.i2c
+  end
+  
+  def set_register register, value
+    i2c.transmit BusAddress, [register, value]
+    sleep(0.01)
   end
 end
 
