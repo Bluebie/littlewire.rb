@@ -81,7 +81,7 @@ module LittleWire::Digital
   # Multiple pins can be set using `my_wire.pin_mode(:pin1 => :input, :pin2 => :output)`
   # 
   # :input mode leaves the pin disconnected if `digital_write`n to false, or connected
-  # via a 20kohm resistor to 5 volts if `digital_write`n to true.
+  # via a 20kohm resistor to 5 volts if `digital_write` to true.
   #
   # :output mode connects the pin directly to 5 volts when `digital_write`n to true
   # and connects it to ground when digitally written to false. Be careful not to create
