@@ -1,15 +1,16 @@
 #!/usr/bin/env ruby
-__dir__ ||= File.dirname(__FILE__)
-#$:.unshift File.join(__dir__, '..', 'lib')
 require 'thor'
 require 'pp'
 require 'littlewire'
 require 'littlewire/gadgets/micronucleus'
 
 class LittleWireUtility < Thor
+  # for ruby 1.9 compatibility, we use this instead of ruby 2.0 __dir__
+  Directory = defined?(__dir__) ? __dir__ : File.pathname(__FILE__)
+  
   desc "install [version]", "Install a specific firmware on to the littlewire device"
   def install version = 'latest'
-    path = File.join(__dir__, "..", "firmware", "#{version}.hex")
+    path = File.join(Directory, "..", "firmware", "#{version}.hex")
     raise "Unknown Version" unless File.file? path
     
     data = HexProgram.new(open path).binary
@@ -44,7 +45,7 @@ class LittleWireUtility < Thor
   desc "firmwares", "List all versions which can be installed via install command"
   def firmwares
     puts "Available LittleWire Firmware:"
-    Dir[File.join(__dir__, "..", "firmware", "*.hex")].each do |filename|
+    Dir[File.join(Directory, "..", "firmware", "*.hex")].each do |filename|
       puts File.basename(filename, '.hex')
     end
   end
@@ -56,7 +57,7 @@ class LittleWireUtility < Thor
     wire = LittleWire.connect
     puts "Device Firmware: #{wire.version}" if wire
     
-    latest_path = File.join(__dir__, "..", "firmware", "#{LittleWire::SupportedVersions.first}.hex")
+    latest_path = File.join(Directory, "..", "firmware", "#{LittleWire::SupportedVersions.first}.hex")
     if LittleWire::SupportedVersions.index(wire.version) != 0 and File.exists? latest_path
       puts "An updated firmware is available, version #{LittleWire::SupportedVersions.first}"
       puts "To update, run:"
@@ -71,7 +72,7 @@ class LittleWireUtility < Thor
   desc "racer", "Attach a Wii Nunchuck and play a game"
   def racer
     ruby_vm = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
-    system(ruby_vm, File.join(__dir__, '..', 'examples', 'i2c', 'nunchuck.rb'))
+    system(ruby_vm, File.join(Directory, '..', 'examples', 'i2c', 'nunchuck.rb'))
   end
 end
 
