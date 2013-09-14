@@ -68,7 +68,7 @@ class LittleWire
     softpwm_c: [:software_pwm, :softpwm_c],
   }
   
-  SupportedVersions = ['1.2', '1.1', '1.0'] # in order of newness. # TODO: Add version 1.0?
+  SupportedVersions = ['1.2', '1.1', '1.0'] # in order of newness.
   
   
   # An array of all unclaimed littlewires connected to computer via USB
@@ -97,7 +97,7 @@ class LittleWire
     
     # shut everything down, trying to setup littlewire in consistent initial state in case previous programs
     # messed with it's state
-    self.software_pwm_enabled = false
+    self.software_pwm_enabled = false if version_hex >= 0x11
     self.hardware_pwm_enabled = false
     self.pin_mode(pin1: :input, pin2: :input, pin3: :input, pin4: :input)
     self.digital_write(pin1: :gnd, pin2: :gnd, pin3: :gnd, pin4: :gnd)
