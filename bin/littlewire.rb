@@ -2,7 +2,7 @@
 $:.unshift File.dirname(__FILE__) + "/../lib"
 require 'thor'
 require 'pp'
-require 'gadgets/micronucleus'
+require_relative '../lib/gadgets/micronucleus'
 
 class LittleWireUtility < Thor
   desc "install [firmware-name]", "Install a specific firmware on to the littlewire device"
