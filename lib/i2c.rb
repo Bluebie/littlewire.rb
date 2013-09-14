@@ -25,8 +25,8 @@ class LittleWire::I2C
   # read bytes from i2c device, optionally ending with a stop when finished
   def read length, stop_at_end = true
     @wire.control_transfer(function: :i2c_read, dataIn: 8,
-                           wValue: ((length.to_i & 0xFF) << 8) + (stop_at_end ? 0 : 1),
-                           wIndex: stop_at_end ? 0 : 1)
+                           wValue: ((length.to_i & 0xFF) << 8) + (stop_at_end ? 1 : 0),
+                           wIndex: stop_at_end ? 1 : 0)
     @wire.control_transfer(function: :read_buffer, dataIn: 8).bytes.first(length)
   end
   
