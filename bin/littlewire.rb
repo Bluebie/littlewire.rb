@@ -50,7 +50,10 @@ class LittleWireUtility < Thor
   
   desc "version", "Which version of the ruby library is this?"
   def version
-    puts "Current Version: " + LittleWire.version
+    puts "Library Version: #{LittleWire.version}"
+    
+    wire = LittleWire.connect
+    puts "Device Firmware: #{wire.version}" if wire
   end
 end
 
