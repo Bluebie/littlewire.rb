@@ -1,4 +1,4 @@
-require './lib/version.rb'
+require './lib/littlewire/version.rb'
 
 Gem::Specification.new do |s|
   s.name = 'littlewire'
