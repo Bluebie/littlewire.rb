@@ -1,8 +1,8 @@
-require '../../lib/littlewire'
+require 'littlewire'
 
 # Make a class which represents a digispark with the digistump eeprom shield attached
 # with LittleWire installed
-class DigisparkEEPROM
+class MicrochipEEPROM
   def initialize wire = LittleWire.connect, address = 0x50
     raise "EEPROM device not responding" unless wire.i2c.address_responds? address
     
@@ -23,7 +23,7 @@ class DigisparkEEPROM
   end
 end
 
-eep = DigisparkEEPROM.new
+eep = MicrochipEEPROM.new
 
 number = rand(127)
 puts "Random number is #{number}"
