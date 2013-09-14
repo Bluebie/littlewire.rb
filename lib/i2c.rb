@@ -1,6 +1,8 @@
 class LittleWire::I2C
   def initialize wire
     @wire = wire
+    raise "i2c support requires littlewire firmware 1.2 or newer. Please update to firmware #{LittleWire::SupportedVersions.first} with the `littlewire.rb install #{LittleWire::SupportedVersions.first}` command!" if wire.version_hex < 0x12
+    warn "i2c delay support is buggy in firmware 1.2. Please update firmware to at least 1.3" if wire.version_hex == 0x12
     @wire.control_transfer(function: :i2c_init, dataIn:8)
   end
   
