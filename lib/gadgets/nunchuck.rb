@@ -8,30 +8,25 @@ end
 class LittleWire::Nunchuck
   BusAddress = 82 # Address of Nunchuck on i2c bus
   
-  def initialize wire
+  def initialize wire, interval = 0
     @wire = wire
     
-    # config i2c to reliably talk with nunchuck devices
-    i2c.delay = 10 # this can probably be quite a bit lower. Maybe even 0
+    raise "Nunchuck requires LittleWire firmware 1.3 or newer" unless wire.version_hex >= 0x13
     
-    # test if nunchuck is responsive
-    # raise "Nunchuck is unresponsive" unless i2c.address_responds? BusAddress
-    # sleep 0.01
+    # config i2c to reliably talk with nunchuck devices
+    i2c.delay = interval # The fastest option of 0 seems to work. Neat!
     
     # initialize the nunchuck
-    set_register 0x55, 0xf0
-    set_register 0x00, 0xfb
-    sample
+    set_register 0xf0, 0x55
+    set_register 0xfb, 0x00
+    sample # do a sample, to get the ball rolling
   end
   
   def sample
-    # read six bytes from read address 0xa5
+    # tell device to gather new sensor data
+    i2c.transmit BusAddress, [0]
+    # load sample in to PC
     data = i2c.request(BusAddress, 6)
-    puts data.inspect
-    #data.map! { |x| (0x17 ^ x) + 0x17 } # "decrypt" data
-    sleep 0.1
-    
-    set_register 0x00, 0x00
     
     LittleWire::Nunchuck::NunchuckFrame.new(data)
   end
@@ -76,10 +71,15 @@ class LittleWire::Nunchuck::NunchuckFrame
     end
     
     attr_accessor :x,:y,:z
-    def to_a; [@x,@y,@z]; end
+    def to_a; [@x,@y,@z].compact; end
     def to_h; {x: @x, y: @y, z: @z}; end
     def to_hash; to_h; end
-    def inspect; "<Vector3D:" + to_h.delete_if { |k,v| v == nil }.inspect + ">"; end
+    def inspect
+      precision = 2
+      pretty = lambda { |n| (n >= 0 ? '+' : '-') + n.abs.round(precision).to_s.ljust(precision + 2, '0') }
+      numbers = to_a.map { |n| pretty[n] }
+      "<Coords:" + numbers.join(',') + ">"
+    end
   end
   
   class Buttons
