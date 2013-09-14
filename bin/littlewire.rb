@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
-$:.unshift File.dirname(__FILE__) + "/../lib"
+__dir__ ||= File.dirname(__FILE__)
+#$:.unshift File.join(__dir__, '..', 'lib')
 require 'thor'
 require 'pp'
-require_relative '../lib/littlewire'
-require_relative '../lib/gadgets/micronucleus'
+require 'littlewire'
+require 'littlewire/gadgets/micronucleus'
 
 class LittleWireUtility < Thor
   desc "install [version]", "Install a specific firmware on to the littlewire device"
@@ -56,7 +57,7 @@ class LittleWireUtility < Thor
     puts "Device Firmware: #{wire.version}" if wire
     
     latest_path = File.join(__dir__, "..", "firmware", "#{LittleWire::SupportedVersions.first}.hex")
-    if LittleWire::SupportedVersions.index(wire.version) > 0 and File.exists? latest_path
+    if LittleWire::SupportedVersions.index(wire.version) != 0 and File.exists? latest_path
       puts "An updated firmware is available, version #{LittleWire::SupportedVersions.first}"
       puts "To update, run:"
       puts "  littlewire.rb install #{LittleWire::SupportedVersions.first}"
@@ -65,6 +66,12 @@ class LittleWireUtility < Thor
       puts "install the Micronucleus bootloader as described on the littlewire.cc website."
       puts ""
     end
+  end
+  
+  desc "racer", "Attach a Wii Nunchuck and play a game"
+  def racer
+    ruby_vm = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
+    system(ruby_vm, File.join(__dir__, '..', 'examples', 'i2c', 'nunchuck.rb'))
   end
 end
 
