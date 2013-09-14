@@ -1,15 +1,15 @@
 require 'libusb'
 class LittleWire; end
-require_relative 'digital'
-require_relative 'analog'
-require_relative 'hardware-pwm'
-require_relative 'software-pwm'
-require_relative 'servo'
-require_relative 'spi'
-require_relative 'i2c'
-require_relative 'one-wire'
-require_relative 'ws2811'
-require_relative 'version'
+require_relative 'littlewire/digital'
+require_relative 'littlewire/analog'
+require_relative 'littlewire/hardware-pwm'
+require_relative 'littlewire/software-pwm'
+require_relative 'littlewire/servo'
+require_relative 'littlewire/spi'
+require_relative 'littlewire/i2c'
+require_relative 'littlewire/one-wire'
+require_relative 'littlewire/ws2811'
+require_relative 'littlewire/version'
 
 # A little library for a little wire, by Bluebie
 # Provides an arduino or wiring style interface to the LittleWire device's IO features
