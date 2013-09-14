@@ -1,4 +1,4 @@
-require_relative './lib/version.rb'
+require './lib/version.rb'
 
 Gem::Specification.new do |s|
   s.name = 'littlewire'
@@ -11,10 +11,11 @@ Gem::Specification.new do |s|
   "littlewire.cc's wonderful gadget. littlewire.rb provides general purpose digital IO, pulse width modulation analog " +
   "outputs, analog inputs, SPI, I2C, One Wire, and rough servo control via a friendly interface which responds both to " +
   "familiar Wiring/Arduino style methods and a more concise ruby alternative."
-  s.files = Dir['lib/**.rb'] + ['readme.md', 'license.txt'] + Dir['examples/**.rb'] + Dir['bin/**/*.rb'] + Dir['firmware/**/*.hex']
+  s.files = Dir['lib/**/*.rb'] + ['readme.md', 'license.txt'] + Dir['examples/**/*.rb'] + Dir['bin/**/*.rb'] + Dir['firmware/**/*.hex']
   s.executables << 'littlewire.rb'
   s.require_paths = ['lib']
   s.required_ruby_version = '>= 1.9.1'
+  s.licenses = ['CC0', 'Unlicense', 'Public Domain']
   
   s.rdoc_options << '--main' << 'lib/littlewire.rb'
   

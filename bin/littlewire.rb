@@ -2,10 +2,11 @@
 $:.unshift File.dirname(__FILE__) + "/../lib"
 require 'thor'
 require 'pp'
+require_relative '../lib/littlewire'
 require_relative '../lib/gadgets/micronucleus'
 
 class LittleWireUtility < Thor
-  desc "install [firmware-name]", "Install a specific firmware on to the littlewire device"
+  desc "install [version]", "Install a specific firmware on to the littlewire device"
   def install version = 'latest'
     path = File.join(__dir__, "..", "firmware", "#{version}.hex")
     raise "Unknown Version" unless File.file? path
@@ -39,12 +40,17 @@ class LittleWireUtility < Thor
     puts "If littlewire doesn't automatically appear in a few seconds, unplug and replug device from USB port"
   end
   
-  desc "versions", "List all versions which can be installed via install command"
-  def versions
+  desc "firmwares", "List all versions which can be installed via install command"
+  def firmwares
     puts "Available LittleWire Firmware:"
     Dir[File.join(__dir__, "..", "firmware", "*.hex")].each do |filename|
       puts File.basename(filename, '.hex')
     end
+  end
+  
+  desc "version", "Which version of the ruby library is this?"
+  def version
+    puts "Current Version: " + LittleWire.version
   end
 end
 

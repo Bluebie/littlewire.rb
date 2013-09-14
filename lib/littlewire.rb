@@ -9,6 +9,7 @@ require_relative 'spi'
 require_relative 'i2c'
 require_relative 'one-wire'
 require_relative 'ws2811'
+require_relative 'version'
 
 # A little library for a little wire, by Bluebie
 # Provides an arduino or wiring style interface to the LittleWire device's IO features
