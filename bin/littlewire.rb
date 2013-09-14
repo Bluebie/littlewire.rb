@@ -54,6 +54,17 @@ class LittleWireUtility < Thor
     
     wire = LittleWire.connect
     puts "Device Firmware: #{wire.version}" if wire
+    
+    latest_path = File.join(__dir__, "..", "firmware", "#{LittleWire::SupportedVersions.first}.hex")
+    if LittleWire::SupportedVersions.index(wire.version) > 0 and File.exists? latest_path
+      puts "An updated firmware is available, version #{LittleWire::SupportedVersions.first}"
+      puts "To update, run:"
+      puts "  littlewire.rb install #{LittleWire::SupportedVersions.first}"
+      puts ""
+      puts "If you bought your LittleWire as a kit from Seeed Studios, you may need to first"
+      puts "install the Micronucleus bootloader as described on the littlewire.cc website."
+      puts ""
+    end
   end
 end
 
