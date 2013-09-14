@@ -5,17 +5,20 @@ require 'littlewire'
 require 'littlewire/gadgets/nunchuck'
 
 wire = LittleWire.connect
-wire.pin_mode :ds5, :output
-wire.digital_write :ds5, :low
+raise "No LittleWire device connected" unless wire
 
 car = 0.0
 wall = 0.0
 wall_width = 16
 constraint = 20.0
 
+# wait till C button is released...
+sleep 0.1 while wire.nunchuck.sample.buttons.c
+
 puts DATA.read
 puts ''
 puts "Point your nunchuck at the screen, and press C button to start your engines!"
+# wait untill C button is pressed
 sleep 0.1 until wire.nunchuck.sample.buttons.c
 
 seconds = 0.0
