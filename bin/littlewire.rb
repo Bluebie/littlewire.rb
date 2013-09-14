@@ -6,7 +6,8 @@ require 'littlewire/gadgets/micronucleus'
 
 class LittleWireUtility < Thor
   # for ruby 1.9 compatibility, we use this instead of ruby 2.0 __dir__
-  Directory = defined?(__dir__) ? __dir__ : File.pathname(__FILE__)
+  #Directory = defined?(__dir__) ? __dir__ : File.pathname(__FILE__)
+  Directory = File.dirname(__FILE__)
   
   desc "install [version]", "Install a specific firmware on to the littlewire device"
   def install version = 'latest'
@@ -55,17 +56,19 @@ class LittleWireUtility < Thor
     puts "Library Version: #{LittleWire.version}"
     
     wire = LittleWire.connect
-    puts "Device Firmware: #{wire.version}" if wire
+    if wire
+      puts "Device Firmware: #{wire.version}"
     
-    latest_path = File.join(Directory, "..", "firmware", "#{LittleWire::SupportedVersions.first}.hex")
-    if LittleWire::SupportedVersions.index(wire.version) != 0 and File.exists? latest_path
-      puts "An updated firmware is available, version #{LittleWire::SupportedVersions.first}"
-      puts "To update, run:"
-      puts "  littlewire.rb install #{LittleWire::SupportedVersions.first}"
-      puts ""
-      puts "If you bought your LittleWire as a kit from Seeed Studios, you may need to first"
-      puts "install the Micronucleus bootloader as described on the littlewire.cc website."
-      puts ""
+      latest_path = File.join(Directory, "..", "firmware", "#{LittleWire::SupportedVersions.first}.hex")
+      if LittleWire::SupportedVersions.index(wire.version) != 0 and File.exists? latest_path
+        puts "An updated firmware is available, version #{LittleWire::SupportedVersions.first}"
+        puts "To update, run:"
+        puts "  littlewire.rb install #{LittleWire::SupportedVersions.first}"
+        puts ""
+        puts "If you bought your LittleWire as a kit from Seeed Studios, you may need to first"
+        puts "install the Micronucleus bootloader as described on the littlewire.cc website."
+        puts ""
+      end
     end
   end
   
