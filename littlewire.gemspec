@@ -10,7 +10,8 @@ Gem::Specification.new do |s|
   s.description = "A little library for a little wire. Providing a pure ruby interface (via the nonpure libusb gem) to " +
   "littlewire.cc's wonderful gadget. littlewire.rb provides general purpose digital IO, pulse width modulation analog " +
   "outputs, analog inputs, SPI, I2C, One Wire, and rough servo control via a friendly interface which responds both to " +
-  "familiar Wiring/Arduino style methods and a more concise ruby alternative."
+  "familiar Wiring/Arduino style methods and a more concise ruby alternative. LittleWire can be installed on to Digispark" +
+  "devices, offering a very extensive firmata-style option for digispark users."
   s.files = Dir['lib/**/*.rb'] + ['readme.md', 'license.txt'] + Dir['examples/**/*.rb'] + Dir['bin/**/*.rb'] + Dir['firmware/**/*.hex']
   s.executables << 'littlewire.rb'
   s.require_paths = ['lib']
