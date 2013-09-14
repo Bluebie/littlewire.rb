@@ -20,6 +20,8 @@ Gem::Specification.new do |s|
   
   s.rdoc_options << '--main' << 'lib/littlewire.rb'
   
-  s.add_dependency 'libusb', '>= 0.2.0'
-  s.add_dependency 'colorist', '>= 0.0.2'
+  s.add_dependency 'libusb', '>= 0.2.0' # for talking to hardware
+  s.add_dependency 'colorist', '>= 0.0.2' # for interpreting colors in the ws2812 stuff
+  s.add_dependency 'thor', '>= 0.18.1' # cli stuff for cli app
+  #s.add_dependency 'colored', '>= 1.2' # colorful output in cli app
 end
