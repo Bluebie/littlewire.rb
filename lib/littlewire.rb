@@ -68,7 +68,7 @@ class LittleWire
     softpwm_c: [:software_pwm, :softpwm_c],
   }
   
-  SupportedVersions = ['1.2', '1.1', '1.0'] # in order of newness.
+  SupportedVersions = ['1.3','1.2', '1.1', '1.0'] # in order of newness.
   
   
   # An array of all unclaimed littlewires connected to computer via USB
