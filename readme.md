@@ -4,8 +4,8 @@ what this library is about. The [littlewire.cc](http://littlewire.cc/) gadget
 exposes four digital wires and a five volt power supply. Those four wires can
 each be individually controlled, with three capable of varying brightness of
 lights, two capable of controlling motors and servos, two 10-bit analog inputs,
-a temperature sensor, a Serial Peripheral Interface, an i2c interface, and a
-1-wire interface.
+a temperature sensor, a Serial Peripheral Interface, an i2c interface, an WS2811
+(also WS2812) interface, and a 1-wire interface.
 
 Eventually littlewire.rb hopes to share fun, simple, principal of least surprise
 ruby interfaces to all of these.
@@ -16,6 +16,8 @@ ruby interfaces to all of these.
     require 'littlewire'
     
     wire = LittleWire.connect # connects to the first Little Wire on your computer
+
+    wire.pin_mode :pin3, :out
     
     loop do
       wire.digital_write :pin3, :vcc # connect pin3 to 5v
